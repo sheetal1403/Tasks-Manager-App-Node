@@ -1,16 +1,39 @@
 const express = require('express')
 const User = require('../models/user')
 const router = express.Router()
+const bcrypt = require('bcryptjs')
 
 router.get('/test', (req, res) => {
     res.send('TEST')
 })
 
 router.post('/users', async (req, res) => {
+
+    // try{
+    //     password = await bcrypt.hash(req.body.password, 8)
+    //     console.log(password)
+
+    // }catch(e){
+    //     return res.send(e)
+    // }
+    
+    
+    // const user1 = new User({
+    //     name: req.body.name,
+    //     email: req.body.email,
+    //     age: req.body.age,
+    //     password: password
+    //     })
+    
+
+
     const user1 = new User(req.body)
+   
 
     try{
+       
         await user1.save()
+        
         res.status(201).send(user1)
     }catch(e){
         res.status(400).send(e)
@@ -68,15 +91,22 @@ router.patch('/users/:id', async (req, res) => {
     const allowedUpdates = ['name', 'email', 'password', 'age']
 
     const valid = updates.every(element => allowedUpdates.includes(element))
+    console.log('Inside patch')
     if(!valid){
         return res.status(400).send({error: 'Invalid updates'})
     }
 
     try{
-        const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        })
+        // const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+        //     new: true,
+        //     runValidators: true
+        // })
+        
+        const user = await User.findById(req.params.id)
+        
+        updates.forEach(update => user[update] = req.body[update])
+        await user.save()
+        
         if(!user){
             return res.status(404).send()
         }
