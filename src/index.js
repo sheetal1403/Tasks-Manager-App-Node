@@ -3,12 +3,25 @@ require('./db/mongoose')
 const userRouter = require('../src/routers/user')
 const taskRouter = require('../src/routers/task')
 
+
 const app = express()
 const port = process.env.PORT || 3000
+
+
+//Express middleware
+// app.use((req,res,next) => {
+//     if(req.method === 'GET'){
+//         res.send('Get req are disbaled')
+//     }else{
+//         next()
+//     }
+// })
 
 app.use(express.json()) //Automatically parse all json data
 app.use(userRouter)
 app.use(taskRouter)
+
+
 
 
 
@@ -18,17 +31,14 @@ app.listen(port, () => {
 })
 
 
-// const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
-// const myFunc = async () => {
-//     const password = 'Red12345!'
-//     const hashedPassword = await bcrypt.hash(password, 8) 
+const myFunc = async () => {
+    const token = jwt.sign({_id : 'abc123'}, 'This is my new course', {expiresIn: '7 seconds'}) 
+    console.log(token)  
 
-//     console.log(password)
-//     console.log(hashedPassword)
-
-//     const isMatch = await bcrypt.compare('Red1234!', hashedPassword)
-//     console.log(isMatch)
-// }
+    const data = jwt.verify(token, 'This is my new course')
+    console.log(data)
+}
 
 // myFunc()
