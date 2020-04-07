@@ -7,6 +7,32 @@ const taskRouter = require('../src/routers/task')
 const app = express()
 const port = process.env.PORT || 3000
 
+// const multer = require('multer')
+// const upload = multer({
+//     dest: 'uploads',
+//     limits: {
+//         fileSize: 1000000 //In bytes   
+//     },
+//     fileFilter(req, file, cb){
+//         if(!file.originalname.match(/\.(doc|docx)$/)){
+//             return cb(new Error('Please provide a doc or docx'))
+//         }
+
+//         cb(undefined, true)
+//     }
+// })
+
+// const errorMiddleware = (req,res,next) => {
+//     throw new Error('From the middleware')
+// }
+
+// app.post('/upload', upload.single('upload'), (req, res) => {
+    
+//     res.send({error: error.message})
+// }, (error, req, res, next) => {
+//     res.status(400).send({error: error.message})
+// })
+
 
 //Express middleware
 // app.use((req,res,next) => {
@@ -31,14 +57,5 @@ app.listen(port, () => {
 })
 
 
-const jwt = require('jsonwebtoken')
 
-const myFunc = async () => {
-    const token = jwt.sign({_id : 'abc123'}, 'This is my new course', {expiresIn: '7 seconds'}) 
-    console.log(token)  
 
-    const data = jwt.verify(token, 'This is my new course')
-    console.log(data)
-}
-
-// myFunc()

@@ -3,7 +3,23 @@ const User = require('../models/user')
 const router = express.Router()
 const jwt = require('jsonwebtoken')
 const auth = require('../middleware/auth')
+const multer = require('multer')
+const sharp = require('sharp')
 
+const upload = multer({
+    // dest: 'avatars', uploaded will be accessible in the route handler
+    limits: {
+        fileSize: 1000000
+    },
+    fileFilter(req, file, cb){
+        if(!file.originalname.match(/\.(jpg|jpeg|png)/)){
+            return cb(new Error('Please upload a picture!'))
+        }
+        cb(undefined, true)
+    }
+})
+
+//Sign up a new user - No authentication is required
 router.post('/users', async (req, res) => {
 
     // try{
@@ -45,6 +61,7 @@ router.post('/users', async (req, res) => {
    
 })
 
+//Login in a user - No authentication is required
 router.post('/users/login', async (req,res) => {
     try{
         const user = await User.findByCredentials(req.body.email, req.body.password)
@@ -55,6 +72,7 @@ router.post('/users/login', async (req,res) => {
     }
 })
 
+//Log out
 router.post('/users/logout', auth, async (req,res) => {
     try{
         req.user.tokens = req.user.tokens.filter((element) => {
@@ -68,6 +86,7 @@ router.post('/users/logout', auth, async (req,res) => {
     }
 })
 
+//Log out
 router.post('/users/logoutAll', auth, async (req, res) => {
     try{
         console.log(req.user.tokens)
@@ -97,6 +116,7 @@ router.post('/users/logoutAll', auth, async (req, res) => {
 //     // })
 // })
 
+//Get the logged in user's profile details
 router.get('/users/me', auth, async (req,res) => {
     res.send(req.user)
 })
@@ -125,6 +145,7 @@ router.get('/users/me', auth, async (req,res) => {
 //     // })
 // })
 
+//Update logged in users profile details
 router.patch('/users/me', auth,  async (req, res) => {
     const updates = Object.keys(req.body)
     const allowedUpdates = ['name', 'email', 'password', 'age']
@@ -155,6 +176,7 @@ router.patch('/users/me', auth,  async (req, res) => {
     }
 })
 
+//Delete the logged in user altogether
 router.delete('/users/me', auth, async (req, res) => {
     
     try{
@@ -166,6 +188,37 @@ router.delete('/users/me', auth, async (req, res) => {
     }
 })
 
+//Upload avatar picture
+router.post('/users/me/avatar', auth, upload.single('avatar'), async (req,res) => {
+    const buffer = await sharp(req.file.buffer).resize(320,240).png().toBuffer()
+    req.user.avatar = buffer
+    await req.user.save()
+    res.send()
+}, (error, req, res, next) => {
+    res.status(400).send({error: error.message})
+})
+
+
+//Delete avatar picture
+router.delete('/users/me/avatar', auth, async (req,res) => {
+    req.user.avatar = undefined;
+    await req.user.save()
+    res.send()
+})
+
+//Serve/Display a users avatar picture
+router.get('/users/:id/avatar', async (req,res) => {
+    try{
+        const user = await User.findById(req.params.id)
+        if(!user || !user.avatar){
+            throw new Error('Not found!!')
+        }
+        res.set('Content-type', 'image/png')
+        res.send(user.avatar)
+    }catch(e){
+        res.status(404).send(e)
+    }
+})
 
 
 module.exports = router
