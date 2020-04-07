@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 const auth = require('../middleware/auth')
 const multer = require('multer')
 const sharp = require('sharp')
+const account = require('../emails/account')
 
 const upload = multer({
     // dest: 'avatars', uploaded will be accessible in the route handler
@@ -46,6 +47,7 @@ router.post('/users', async (req, res) => {
     try{
        
         await user1.save()
+        // account.sendWelcomeEmail(req.body.email, req.body.name)
         const token =  await user1.generateAuthToken()
         
         res.status(201).send({user1, token})
@@ -182,6 +184,7 @@ router.delete('/users/me', auth, async (req, res) => {
     try{
         // const user = await User.findByIdAndDelete(req.user.id) -- req.user already exists in auth middleware
         await req.user.remove()
+        account.sendCancelEmail(req.user.email, req.user.name)
         res.send(req.user)
     }catch(e){
         res.status(400).send(e)
